@@ -102,6 +102,18 @@ const AudioNodeLibrary:{ [index: string] : (ctx: AudioContext) => AudioNodeFlowI
         }
       ]
     })
+  },
+  sender: (ctx: AudioContext): AudioNodeFlowInterface => {
+    const audioNode = ctx.createMediaStreamDestination();
+    return new AudioNodeFlowInterface({
+      audioNode,
+      label: "Sender",
+    })
+  },
+  receiver: (ctx: AudioContext): AudioNodeFlowInterface => {
+    return new AudioNodeFlowInterface({
+      label: "Receiver"
+    })
   }
 }
 

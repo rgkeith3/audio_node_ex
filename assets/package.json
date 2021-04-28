@@ -6,6 +6,7 @@
     "watch": "webpack --mode development --watch"
   },
   "dependencies": {
+    "@types/phoenix": "^1.5.1",
     "@types/react": "^17.0.3",
     "@types/react-dom": "^17.0.3",
     "phoenix": "file:../deps/phoenix",

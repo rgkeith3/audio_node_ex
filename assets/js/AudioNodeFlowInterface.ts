@@ -10,7 +10,7 @@ export type Constant = {
 }
 
 export type AudioNodeFlowInterfaceOptions = {
-  audioNode: AudioNode
+  audioNode?: AudioNode
   label: string
   params?: Param[]
   constants?: Constant[]
@@ -23,8 +23,8 @@ export class AudioNodeFlowInterface {
     this.label = label;
     this.params = params || [];
     this.constants = constants || [];
-    this.outputs = audioNode.numberOfOutputs;
-    this.inputs = audioNode.numberOfInputs;
+    this.outputs = audioNode && audioNode.numberOfOutputs || 0;
+    this.inputs = audioNode && audioNode.numberOfInputs || 0;
   }
   connectNode (targetNode: AudioNodeFlowInterface, targetHandle: string | null) {
     this.audioNode.connect(targetHandle ? targetNode.audioNode[targetHandle] : targetNode.audioNode)

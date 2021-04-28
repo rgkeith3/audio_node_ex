@@ -4,9 +4,13 @@ import '../css/App.css'
 import Pallette from './Pallette';
 import AudioNodeLibrary from './AudioNodeLibrary';
 import AudioFlowNode from './flow_nodes/AudioFlowNode';
+import SenderFlowNode from './flow_nodes/SenderFlowNode';
+import ReceiverFlowNode from './flow_nodes/ReceiverFlowNode';
 
 const nodeTypes = {
-  custom: AudioFlowNode
+  default: AudioFlowNode,
+  sender: SenderFlowNode,
+  receiver: ReceiverFlowNode
 };
 
 const audioCtx = new AudioContext();
@@ -81,7 +85,7 @@ const App = () => {
     const position = patchInstance!.project({ x: event.clientX, y: event.clientY });
     const newNode = {
       id: getId(),
-      type: "custom",
+      type,
       position,
       data: AudioNodeLibrary[type](audioCtx),
     };
