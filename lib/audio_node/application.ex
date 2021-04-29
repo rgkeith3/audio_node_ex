@@ -11,9 +11,10 @@ defmodule AudioNode.Application do
       # Start the Ecto repository
       # AudioNode.Repo,
       # Start the endpoint when the application starts
-      AudioNodeWeb.Endpoint
+      AudioNodeWeb.Endpoint,
       # Starts a worker by calling: AudioNode.Worker.start_link(arg)
       # {AudioNode.Worker, arg},
+      AudioNodeWeb.ReadyState
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

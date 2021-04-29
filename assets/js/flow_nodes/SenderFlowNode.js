@@ -5,7 +5,13 @@ import connection from '../Connection';
 const SenderFlowNode = ({id, data: {audioNode} }) => {
   const [code, setCode] = useState("");
 
-  const onClick = () => connection.newConnection(code, audioNode.stream.getTracks()[0])
+  // const onClick = () => connection.newConnection(code, audioNode.stream.getTracks()[0])
+  const onClick = () => {
+    connection.onKickoffCallback(code, () => {
+      connection.newConnection(code, audioNode.stream.getTracks()[0]);
+    });
+    connection.senderReady(code)
+  };
   return (
     <div key={id}>
       <Handle type="target" position="left" />

@@ -111,8 +111,12 @@ const AudioNodeLibrary:{ [index: string] : (ctx: AudioContext) => AudioNodeFlowI
     })
   },
   receiver: (ctx: AudioContext): AudioNodeFlowInterface => {
+    // this is a placeholder audioNode that will output silence,
+    // the audioNode will be replaced when the connection happens
+    const audioNode = ctx.createBufferSource();
     return new AudioNodeFlowInterface({
-      label: "Receiver"
+      label: "Receiver",
+      audioNode
     })
   }
 }

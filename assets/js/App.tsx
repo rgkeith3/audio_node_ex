@@ -6,6 +6,7 @@ import AudioNodeLibrary from './AudioNodeLibrary';
 import AudioFlowNode from './flow_nodes/AudioFlowNode';
 import SenderFlowNode from './flow_nodes/SenderFlowNode';
 import ReceiverFlowNode from './flow_nodes/ReceiverFlowNode';
+import AudioContextGlobal from './AudioContextGlobal';
 
 const nodeTypes = {
   default: AudioFlowNode,
@@ -13,21 +14,21 @@ const nodeTypes = {
   receiver: ReceiverFlowNode
 };
 
-const audioCtx = new AudioContext();
+AudioContextGlobal
 
 let id = 0;
 const getId = () => `${id++}`;
 
 const App = () => {
-  const [audioCtxState, setAudioCtxState] = useState(audioCtx.state);
+  const [audioCtxState, setAudioCtxState] = useState(AudioContextGlobal.state);
   const [patchInstance, setPatchInstance] = useState<OnLoadParams>();
   const [elements, setElements] = useState<Elements>([]);
 
   const toggleAudioCtxState = () => {
     if (audioCtxState === "running") {
-      audioCtx.suspend().then(() => setAudioCtxState(audioCtx.state));
+      AudioContextGlobal.suspend().then(() => setAudioCtxState(AudioContextGlobal.state));
     } else {
-      audioCtx.resume().then(() => setAudioCtxState(audioCtx.state));
+      AudioContextGlobal.resume().then(() => setAudioCtxState(AudioContextGlobal.state));
     }
   }
 
@@ -45,6 +46,7 @@ const App = () => {
     const { source, target, targetHandle } = edge;
     const sourceNode = elements.find(el => el.id === source);
     const targetNode = elements.find(el => el.id === target);
+    debugger;
     if (sourceNode && targetNode) {
       sourceNode.data.disconnectNode(targetNode.data, targetHandle);
     }
@@ -87,7 +89,7 @@ const App = () => {
       id: getId(),
       type,
       position,
-      data: AudioNodeLibrary[type](audioCtx),
+      data: AudioNodeLibrary[type](AudioContextGlobal),
     };
 
     setElements((es) => es.concat(newNode));
@@ -109,7 +111,7 @@ const App = () => {
                 snapToGrid={true}
                 snapGrid={[15, 15]}
                 connectionLineType={ConnectionLineType.SmoothStep}
-              >
+                >
                 <Background />
                 <Controls />
               </ReactFlow>

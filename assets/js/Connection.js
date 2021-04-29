@@ -9,10 +9,29 @@ class Connection {
       .receive("ok", resp => console.log("Joined Sucessfully", resp))
       .receive("error", resp => console.log("Unable to Join", resp));
 
+    this.channel.on("kickoff", this.onKickoff.bind(this));
     this.channel.on("offer", this.onOfferSignal.bind(this));
     this.channel.on("answer", this.onAnswerSignal.bind(this));
     this.channel.on("ice-candidate", this.onIceCandidateSignal.bind(this));
-    this.rtcPeers = {}
+    this.rtcPeers = {};
+    this.kickoffCallbacks = {};
+    this.onTrackCallbacks = {};
+  }
+
+  onKickoffCallback(code, callback) {
+    this.kickoffCallbacks[code] = callback;
+  }
+
+  onKickoff({receiver}) {
+    this.kickoffCallbacks[receiver]();
+  }
+
+  senderReady(uuid) {
+    this.channel.push("sender-ready", {targetUuid: uuid});
+  }
+
+  receiverReady(uuid) {
+    this.channel.push("receiver-ready", {targetUuid: uuid});
   }
 
   getRTCPeer(uuid) {
@@ -27,6 +46,7 @@ class Connection {
       rtcPeerConnection.onicecandidate = this.onIceCandidate.bind(this, uuid);
       rtcPeerConnection.onnegotiationneeded = this.offer.bind(this, uuid);
       rtcPeerConnection.ontrack = this.onTrack.bind(this);
+      rtcPeerConnection.targetUuid = uuid;
       this.rtcPeers[uuid] = rtcPeerConnection
     }
     return this.rtcPeers[uuid];
@@ -73,10 +93,13 @@ class Connection {
     }
   }
 
-  onTrack(ev) {
+  onTrack({target: rtcPeer, track}) {
     console.log("Handling Track");
-    console.log(ev);
-    debugger;
+    this.onTrackCallbacks[rtcPeer.targetUuid](track);
+  }
+
+  onTrackCallback(code, callback) {
+    this.onTrackCallbacks[code] = callback;
   }
 
   onIceCandidateSignal({ from, candidate }) {
