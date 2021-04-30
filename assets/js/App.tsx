@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import ReactFlow, { addEdge, updateEdge, ReactFlowProvider, removeElements, Controls, isEdge, Connection, OnLoadParams, Elements, Edge, Background, ConnectionLineType } from 'react-flow-renderer'
+import ReactFlow, { addEdge, updateEdge, ReactFlowProvider, removeElements, Controls, isEdge, Connection, OnLoadParams, Elements, Edge, Background, ConnectionLineType, isNode } from 'react-flow-renderer'
 import '../css/App.css'
 import Pallette from './Pallette';
-import AudioNodeLibrary from './AudioNodeLibrary';
 import AudioFlowNode from './flow_nodes/AudioFlowNode';
 import SenderFlowNode from './flow_nodes/SenderFlowNode';
 import ReceiverFlowNode from './flow_nodes/ReceiverFlowNode';
-import AudioContextGlobal from './AudioContextGlobal';
+import AudioNodeGraph from './AudioNodeGraph';
 
 const nodeTypes = {
   default: AudioFlowNode,
@@ -14,65 +13,49 @@ const nodeTypes = {
   receiver: ReceiverFlowNode
 };
 
-AudioContextGlobal
-
 let id = 0;
 const getId = () => `${id++}`;
 
 const App = () => {
-  const [audioCtxState, setAudioCtxState] = useState(AudioContextGlobal.state);
+  const [audioCtxState, setAudioCtxState] = useState(AudioNodeGraph.state);
   const [patchInstance, setPatchInstance] = useState<OnLoadParams>();
   const [elements, setElements] = useState<Elements>([]);
 
   const toggleAudioCtxState = () => {
     if (audioCtxState === "running") {
-      AudioContextGlobal.suspend().then(() => setAudioCtxState(AudioContextGlobal.state));
+      AudioNodeGraph.suspend().then(state => setAudioCtxState(state));
     } else {
-      AudioContextGlobal.resume().then(() => setAudioCtxState(AudioContextGlobal.state));
-    }
-  }
-
-  const connectAudio = (conn: Connection | Edge) => {
-    const { source, target, targetHandle } = conn;
-
-    const sourceNode = elements.find(el => el.id === source);
-    const targetNode = elements.find(el => el.id === target);
-    if (sourceNode && targetNode) {
-      sourceNode.data.connectNode(targetNode.data, targetHandle);
-    }
-  }
-
-  const disconnectAudio = (edge: Edge) => {
-    const { source, target, targetHandle } = edge;
-    const sourceNode = elements.find(el => el.id === source);
-    const targetNode = elements.find(el => el.id === target);
-    debugger;
-    if (sourceNode && targetNode) {
-      sourceNode.data.disconnectNode(targetNode.data, targetHandle);
+      AudioNodeGraph.resume().then(state => setAudioCtxState(state));
     }
   }
 
   const onLoad = (reactFlowInstance: OnLoadParams) => setPatchInstance(reactFlowInstance);
 
   const onConnect = (connection: Connection | Edge) => {
-    connectAudio(connection);
     setElements((els) => addEdge({...connection, type: ConnectionLineType.SmoothStep}, els));
+    AudioNodeGraph.connect(connection);
   }
 
   const onEdgeUpdate = (oldEdge: Edge, newConnection: Connection) => {
-    disconnectAudio(oldEdge);
-    connectAudio(newConnection);
     setElements((els) => updateEdge(oldEdge, newConnection, els));
+
+    AudioNodeGraph.disconnect(oldEdge);
+    AudioNodeGraph.connect(newConnection);
   }
 
   const onElementsRemove = (elementsToRemove: Elements) => {
+    setElements((els) => removeElements(elementsToRemove, els));
     elementsToRemove.forEach((element) => {
       if (isEdge(element)) {
-        disconnectAudio(element);
+        AudioNodeGraph.disconnect(element);
       }
     });
 
-    setElements((els) => removeElements(elementsToRemove, els));
+    elementsToRemove.forEach((element) => {
+      if (isNode(element)) {
+        AudioNodeGraph.remove(element.id);
+      }
+    })
   }
 
   const onDragOver = (event: React.DragEvent) => {
@@ -85,11 +68,15 @@ const App = () => {
 
     const type = event.dataTransfer!.getData('application/reactflow');
     const position = patchInstance!.project({ x: event.clientX, y: event.clientY });
+
+    const id = getId();
+    const data = AudioNodeGraph.add(type, id);
+
     const newNode = {
-      id: getId(),
+      id,
       type,
       position,
-      data: AudioNodeLibrary[type](AudioContextGlobal),
+      data
     };
 
     setElements((es) => es.concat(newNode));

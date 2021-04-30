@@ -1,16 +1,17 @@
 import React, {useState} from 'react';
 import { Handle } from 'react-flow-renderer';
+import AudioNodeGraph from '../AudioNodeGraph';
 import connection from '../Connection';
 
-const SenderFlowNode = ({id, data: {audioNode} }) => {
+const SenderFlowNode = ({ id }) => {
   const [code, setCode] = useState("");
 
   // const onClick = () => connection.newConnection(code, audioNode.stream.getTracks()[0])
   const onClick = () => {
     connection.onKickoffCallback(code, () => {
-      connection.newConnection(code, audioNode.stream.getTracks()[0]);
+      connection.newConnection(code, AudioNodeGraph.get(id).stream.getTracks()[0]);
     });
-    connection.senderReady(code)
+    connection.senderReady(code);
   };
   return (
     <div key={id}>

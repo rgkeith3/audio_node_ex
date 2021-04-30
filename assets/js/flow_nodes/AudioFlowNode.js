@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Handle } from 'react-flow-renderer';
+import AudioNodeGraph from '../AudioNodeGraph';
 
 const nodeStyle = {
   background: "red",
@@ -29,14 +30,18 @@ const reverseTransformValue = (sliderAction, value) => {
   }
 }
 
-const AudioFlowNode = ({ id, data: { label, params, constants, outputs, inputs, audioNode }}) => {
+const AudioFlowNode = ({ id, data: { label, params, constants, outputs, inputs }}) => {
   // handle constants
   // probably want to try to do special handling for frequency sliders (exponential)
-  const initialState = {}
-  params.forEach(({name, sliderAction}) => {
-    initialState[name] = audioNode[name].value;
-    initialState[`${name}-slider`] = reverseTransformValue(sliderAction, audioNode[name].value);
-  });
+  
+  const initialState = params.reduce((initial, {name, sliderAction}) => {
+    const audioNode = AudioNodeGraph.get(id);
+    if (audioNode) {
+      initial[name] = audioNode[name].value;
+      initial[`${name}-slider`] = reverseTransformValue(sliderAction, audioNode[name].value);
+    }
+    return initial;
+  }, {});
 
   const [state, setState] = useState(initialState);
 
@@ -45,11 +50,13 @@ const AudioFlowNode = ({ id, data: { label, params, constants, outputs, inputs, 
 
     const onSlide = ({target: {value}}) => {
       const transformedValue = transformValue(sliderAction, parseFloat(value));
+      const audioNode = AudioNodeGraph.get(id);
       audioNode[name].setValueAtTime(transformedValue, audioNode.context.currentTime);
       setState({...state, [name]: transformedValue, [`${name}-slider`]: value})
     }
 
     const onChange = ({target: {value}}) => {
+      const audioNode = AudioNodeGraph.get(id);
       audioNode[name].setValueAtTime(value, audioNode.context.currentTime);
       setState({...state, [name]: parseFloat(value), [`${name}-slider`]: reverseTransformValue(sliderAction, value)});
     }

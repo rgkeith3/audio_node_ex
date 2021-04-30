@@ -1,25 +1,18 @@
 import React, {useState} from 'react';
-import { Handle, useStoreState, useStoreActions } from 'react-flow-renderer';
-import AudioContextGlobal from '../AudioContextGlobal';
-import { AudioNodeFlowInterface } from '../AudioNodeFlowInterface';
+import { Handle, useStoreState } from 'react-flow-renderer';
+import AudioNodeGraph from '../AudioNodeGraph';
 import connection from '../Connection';
 
-const ReceiverFlowNode = ({ id, data: {label}, xPos, yPos}) => {
+const ReceiverFlowNode = ({ id }) => {
   const [code, setCode] = useState("");
-  const {nodes, edges} = useStoreState(store => store);
-  const setElements = useStoreActions(actions => actions.setElements);
+  const edges = useStoreState(store => store.edges);
 
   const onTrack = (track) => {
-    const audioNode = new AudioNodeFlowInterface({ label, audioNode: AudioContextGlobal.createMediaStreamSource(new MediaStream([track]))});
-    const flowNode = nodes.find(({id: nodeId}) => nodeId === id);
+    const audioNode = AudioNodeGraph.audioCtx.createMediaStreamSource(new MediaStream([track]));
+    AudioNodeGraph.remove(id);
+    AudioNodeGraph.set(id, audioNode);
     const edgesToConnect = edges.filter(({source}) => source === id);
-    flowNode.data.audioNode.disconnect();
-    edgesToConnect.forEach(({target, targetHandle}) => {
-      const targetAudioNode = nodes.find(({id: nodeId}) => nodeId === target);
-      audioNode.connectNode(targetAudioNode.data, targetHandle);
-    });
-    const elements = nodes.filter(({id: nodeId}) => nodeId !== id).concat(edges).concat({id, data: audioNode, position: {x: xPos, y: yPos} })
-    setElements(elements);
+    edgesToConnect.forEach(AudioNodeGraph.connect);
   }
 
   const onClick = () => {
