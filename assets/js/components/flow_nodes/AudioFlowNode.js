@@ -58,7 +58,6 @@ const AudioFlowNode = ({ id, data: { label, params, constants, outputs, inputs }
       const audioNode = AudioNodeGraph.get(id);
       audioNode[name].setValueAtTime(value, audioNode.context.currentTime);
       const parsedValue = parseFloat(value) || 0;
-      debugger;
       setState({...state, [name]: value, [`${name}-slider`]: reverseTransformValue(sliderAction, parsedValue)});
     }
 
