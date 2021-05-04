@@ -49,3 +49,8 @@
   background: lightgrey;
   z-index: 100;
 }
+
+.code svg {
+  height: 20px;
+  cursor: pointer;
+}

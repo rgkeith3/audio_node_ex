@@ -1,7 +1,8 @@
 import React, {useState} from 'react';
 import { Handle, useStoreState } from 'react-flow-renderer';
-import AudioNodeGraph from '../AudioNodeGraph';
-import connection from '../Connection';
+import AudioNodeGraph from '../../AudioNodeGraph';
+import connection from '../../Connection';
+import CopyToClipboard from '../utils/CopyToClipboard';
 
 const ReceiverFlowNode = ({ id }) => {
   const [code, setCode] = useState("");
@@ -23,7 +24,10 @@ const ReceiverFlowNode = ({ id }) => {
     <div key={id}>
       <Handle type="source" position="right" />
       <div className="label">Receiver</div>
-      <div className="code">Your Code is <strong>{window.sessionUuid}</strong></div>
+      <div className="code">Your Code is 
+        <strong>{window.sessionUuid}</strong>
+        <CopyToClipboard copyValue={window.sessionUuid}/>
+      </div>
       <div className="description">Enter their code and connect</div>
       <input value={code} onChange={ev => setCode(ev.target.value)} />
       <button type="button" disabled={code.length < 6} onClick={onClick}>Connect</button>

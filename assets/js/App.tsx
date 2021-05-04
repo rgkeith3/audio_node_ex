@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import ReactFlow, { addEdge, updateEdge, ReactFlowProvider, removeElements, Controls, isEdge, Connection, OnLoadParams, Elements, Edge, Background, ConnectionLineType, isNode } from 'react-flow-renderer'
 import '../css/App.css'
 import Pallette from './Pallette';
-import AudioFlowNode from './flow_nodes/AudioFlowNode';
-import SenderFlowNode from './flow_nodes/SenderFlowNode';
-import ReceiverFlowNode from './flow_nodes/ReceiverFlowNode';
+import AudioFlowNode from './components/flow_nodes/AudioFlowNode';
+import SenderFlowNode from './components/flow_nodes/SenderFlowNode';
+import ReceiverFlowNode from './components/flow_nodes/ReceiverFlowNode';
 import AudioNodeGraph from './AudioNodeGraph';
 
 const nodeTypes = {
