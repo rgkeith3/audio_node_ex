@@ -32,7 +32,6 @@ const reverseTransformValue = (sliderAction, value) => {
 
 const AudioFlowNode = ({ id, data: { label, params, constants, outputs, inputs }}) => {
   // handle constants
-  // probably want to try to do special handling for frequency sliders (exponential)
   
   const initialState = params.reduce((initial, {name, sliderAction}) => {
     const audioNode = AudioNodeGraph.get(id);
@@ -58,7 +57,9 @@ const AudioFlowNode = ({ id, data: { label, params, constants, outputs, inputs }
     const onChange = ({target: {value}}) => {
       const audioNode = AudioNodeGraph.get(id);
       audioNode[name].setValueAtTime(value, audioNode.context.currentTime);
-      setState({...state, [name]: parseFloat(value), [`${name}-slider`]: reverseTransformValue(sliderAction, value)});
+      const parsedValue = parseFloat(value) || 0;
+      debugger;
+      setState({...state, [name]: value, [`${name}-slider`]: reverseTransformValue(sliderAction, parsedValue)});
     }
 
     return (
@@ -73,7 +74,7 @@ const AudioFlowNode = ({ id, data: { label, params, constants, outputs, inputs }
           onChange={onSlide}
         />
         <input
-          value={(state[name]).toFixed(2)}
+          value={state[name]}
           onChange={onChange}
         />
       </div>
