@@ -63,7 +63,7 @@ const AudioNodeLibrary:{ [index: string] : (ctx: AudioContext) => AudioNodeFlowI
           max: 10
         }, {
           name: "gain",
-          min: 0,
+          min: -10,
           max: 10
         }],
       constants: [

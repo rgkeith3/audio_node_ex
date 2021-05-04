@@ -63,19 +63,41 @@ const AudioFlowNode = ({ id, data: { label, params, constants, outputs, inputs }
 
     return (
       <div key={name} className={`controls param-${name}`}>
-        <input
-          className="nodrag"
-          type="range"
-          min={min}
-          max={sliderMax}
-          step="0.01"
-          value={state[`${name}-slider`]}
-          onChange={onSlide}
-        />
-        <input
-          value={state[name]}
-          onChange={onChange}
-        />
+        <label>{name}</label>
+        <div className="inputs">
+          <input
+            className="nodrag"
+            type="range"
+            min={min}
+            max={sliderMax}
+            step="0.01"
+            value={state[`${name}-slider`]}
+            onChange={onSlide}
+            />
+          <input
+            value={state[name]}
+            onChange={onChange}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  const constant = ({name, options}) => {
+
+    const onChange = ({ target: { value }}) => {
+      const audioNode = AudioNodeGraph.get(id);
+      audioNode[name] = value
+    }
+
+    return (
+      <div key={name} className={`controls constant-${name}`}>
+        <label>{name}</label>
+        <div className="inputs">
+          <select onChange={onChange} name={name}>
+            {options.map(option => <option key={option} value={option}>{option}</option>)}
+          </select>
+        </div>
       </div>
     )
   }
@@ -86,6 +108,7 @@ const AudioFlowNode = ({ id, data: { label, params, constants, outputs, inputs }
       {params.map(({name}, idx) => <Handle type="target" key={name} id={name} position="top" style={{ left: `${(idx + 0.5)/params.length * 100}%`}}/>)}
       <div className="label">{label}</div>
       {params.map(slider)}
+      {constants.map(constant)}
       {outputs ? <Handle type="source" position="right" /> : ""}
     </div>
   )
