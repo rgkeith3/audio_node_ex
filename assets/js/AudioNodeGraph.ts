@@ -6,6 +6,15 @@ export class AudioNodeGraph {
     this.audioCtx = new AudioContext();
     this.nodes = new Map();
     this.state = this.audioCtx.state;
+    this.loaded = false;
+
+    // load processors
+    const promises = [
+      "white_noise_processor.js",
+      "digital_noise_processor.js"
+    ].map(processor => this.audioCtx.audioWorklet.addModule(`/audio_worklet_processors/${processor}`));
+    Promise.all(promises).then(() => {this.loaded = true;})
+    
     this.connect = this.connect.bind(this);
     this.disconnect = this.disconnect.bind(this);
     this.add = this.add.bind(this);
@@ -21,7 +30,7 @@ export class AudioNodeGraph {
     const sourceNode = this.nodes.get(source!);
     const targetNode = this.nodes.get(target!);
     if (sourceNode && targetNode) {
-      sourceNode.connect(targetHandle ? targetNode[targetHandle] : targetNode);
+      sourceNode.connect(this.getTarget(targetNode, targetHandle));
     }
   }
 
@@ -30,9 +39,20 @@ export class AudioNodeGraph {
     const sourceNode = this.nodes.get(source);
     const targetNode = this.nodes.get(target);
     if (sourceNode && targetNode) {
-      sourceNode.disconnect(targetHandle ? targetNode[targetHandle] : targetNode);
+      sourceNode.disconnect(this.getTarget(targetNode, targetHandle));
     }
   }
+
+  getTarget(targetNode: any, targetHandle: string | null | undefined) {
+    if (!targetHandle) return targetNode;
+
+    if (targetNode instanceof AudioWorkletNode) {
+      // @ts-ignore: AudioParamMap interface definition missing functions
+      return targetNode.parameters.get(targetHandle);
+    }
+    return targetNode[targetHandle];
+  }
+
   // redefine audioNodeFlowInterface and return here
   add(type: string, id: string) : any {
     const { audioNode, ...rest} = AudioNodeLibrary[type](this.audioCtx);
@@ -61,6 +81,7 @@ export class AudioNodeGraph {
     return this.audioCtx.suspend().then(() => this.state = this.audioCtx.state);
   }
 
+  loaded: boolean;
   state: string;
   audioCtx: AudioContext;
   nodes: Map<string, any>;

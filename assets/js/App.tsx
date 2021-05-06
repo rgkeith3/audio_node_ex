@@ -6,9 +6,11 @@ import AudioFlowNode from './components/flow_nodes/AudioFlowNode';
 import SenderFlowNode from './components/flow_nodes/SenderFlowNode';
 import ReceiverFlowNode from './components/flow_nodes/ReceiverFlowNode';
 import AudioNodeGraph from './AudioNodeGraph';
+import CustomAudioFlowNode from './components/flow_nodes/CustomAudioFlowNode';
 
 const nodeTypes = {
   default: AudioFlowNode,
+  digitalNoise: CustomAudioFlowNode,
   sender: SenderFlowNode,
   receiver: ReceiverFlowNode
 };

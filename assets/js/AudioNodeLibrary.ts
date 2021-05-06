@@ -118,6 +118,28 @@ const AudioNodeLibrary:{ [index: string] : (ctx: AudioContext) => AudioNodeFlowI
       label: "Receiver",
       audioNode
     })
+  },
+  noise: (ctx: AudioContext): AudioNodeFlowInterface => {
+    const audioNode = new AudioWorkletNode(ctx, 'white_noise_processor');
+    return new AudioNodeFlowInterface({
+      label: "Noise",
+      audioNode,
+      inputs: 0
+    })
+  },
+  digitalNoise: (ctx: AudioContext): AudioNodeFlowInterface => {
+    const audioNode = new AudioWorkletNode(ctx, 'digital_noise_processor');
+    return new AudioNodeFlowInterface({
+      label: "Digital Noise",
+      audioNode,
+      inputs: 0,
+      params: [{
+        name: "frequency",
+        min: 0,
+        max: 22000,
+        sliderAction: "exp"
+      }]
+    })
   }
 }
 
