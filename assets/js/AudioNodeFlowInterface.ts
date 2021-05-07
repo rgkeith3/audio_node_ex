@@ -20,7 +20,7 @@ export type AudioNodeFlowInterfaceOptions = {
 
 export class AudioNodeFlowInterface {
   constructor(options: AudioNodeFlowInterfaceOptions) {
-    const { audioNode, label, params, constants, inputs, outputs } = options;
+    const { label, params, constants, inputs, outputs } = options;
     this.label = label;
     this.params = params || [];
     this.constants = constants || [];
