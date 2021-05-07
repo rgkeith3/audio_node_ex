@@ -2,7 +2,7 @@ class DigitalNoiseProcessor extends AudioWorkletProcessor {
   static get parameterDescriptors () {
     return [{
       name: 'frequency',
-      defaultValue: 22050,
+      defaultValue: 440,
       minValue: 0,
       maxValue: 22050,
       automationRate: 'a-rate'

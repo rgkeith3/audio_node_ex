@@ -1,5 +1,7 @@
 import { Connection, Edge } from "react-flow-renderer";
+import { Param } from "./AudioNodeFlowInterface";
 import AudioNodeLibrary from "./AudioNodeLibrary";
+import { reverseTransformValue } from "./utils/tranformValues";
 
 export class AudioNodeGraph {
   constructor() {
@@ -20,6 +22,7 @@ export class AudioNodeGraph {
     this.add = this.add.bind(this);
     this.set = this.set.bind(this);
     this.get = this.get.bind(this);
+    this.getTarget = this.getTarget.bind(this);
     this.remove = this.remove.bind(this);
     this.resume = this.resume.bind(this);
     this.suspend = this.suspend.bind(this);
@@ -27,30 +30,14 @@ export class AudioNodeGraph {
 
   connect(connection: Connection | Edge) : void {
     const { source, target, targetHandle } = connection;
-    const sourceNode = this.nodes.get(source!);
-    const targetNode = this.nodes.get(target!);
-    if (sourceNode && targetNode) {
-      sourceNode.connect(this.getTarget(targetNode, targetHandle));
-    }
+    const sourceNode = this.nodes.get(source!)!;
+    sourceNode.connect(this.getTarget(target!, targetHandle));
   }
 
   disconnect(edge: Edge) : void {
     const { source, target, targetHandle } = edge;
-    const sourceNode = this.nodes.get(source);
-    const targetNode = this.nodes.get(target);
-    if (sourceNode && targetNode) {
-      sourceNode.disconnect(this.getTarget(targetNode, targetHandle));
-    }
-  }
-
-  getTarget(targetNode: any, targetHandle: string | null | undefined) {
-    if (!targetHandle) return targetNode;
-
-    if (targetNode instanceof AudioWorkletNode) {
-      // @ts-ignore: AudioParamMap interface definition missing functions
-      return targetNode.parameters.get(targetHandle);
-    }
-    return targetNode[targetHandle];
+    const sourceNode = this.nodes.get(source)!;
+    sourceNode.disconnect(this.getTarget(target, targetHandle));
   }
 
   // redefine audioNodeFlowInterface and return here
@@ -66,6 +53,36 @@ export class AudioNodeGraph {
 
   get(id: string) : AudioNode | undefined {
     return this.nodes.get(id);
+  }
+
+  getTarget(id: string, param: string | null | undefined) : AudioNode | AudioParam {
+    const targetNode = this.get(id)!;
+    if (!param) return targetNode;
+
+    if (targetNode instanceof AudioWorkletNode) {
+      // @ts-ignore: AudioParamMap interface definition missing functions
+      return targetNode.parameters.get(param);
+    }
+    // @ts-ignore: can't string index into AudioNode
+    return targetNode[param];
+  }
+
+  getNodesInitialState(id: string, params: Param[]) : object {
+    const audioNode = this.get(id);
+    if (audioNode) {
+      return params.reduce((initial, {name, sliderAction}) => {
+        
+        const nodeParam = this.getTarget(id, name);
+        if (nodeParam instanceof AudioParam) {
+          //@ts-ignore
+          initial[name] = nodeParam.value;
+          //@ts-ignore
+          initial[`${name}-slider`] = reverseTransformValue(sliderAction, nodeParam.value);
+        }
+        return initial;
+      }, {});
+    }
+    return {};
   }
 
   remove(id: string) : boolean {

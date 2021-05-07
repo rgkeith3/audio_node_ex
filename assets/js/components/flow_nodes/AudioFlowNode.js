@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Handle } from 'react-flow-renderer';
 import AudioNodeGraph from '../../AudioNodeGraph';
+import ConstantSelect from '../utils/ConstantSelect';
+import ParamSlider from '../utils/ParamSlider';
 
 const nodeStyle = {
   background: "red",
@@ -8,107 +10,31 @@ const nodeStyle = {
   flexDirection: "column"
 }
 
-const transformValue = (sliderAction, value) => {
-  switch(sliderAction) {
-    case "exp":
-      return Math.pow(value, 2);
-    case "cub":
-      return Math.pow(value, 3);
-    default:
-      return value;
-  }
-}
-
-const reverseTransformValue = (sliderAction, value) => {
-  switch(sliderAction) {
-    case "exp":
-      return Math.sqrt(value);
-    case "cub":
-      return Math.cbrt(value);
-    default:
-      return value;
-  }
-}
-
 const AudioFlowNode = ({ id, data: { label, params, constants, outputs, inputs }}) => {
-  // handle constants
-  
-  const initialState = params.reduce((initial, {name, sliderAction}) => {
-    const audioNode = AudioNodeGraph.get(id);
-    if (audioNode) {
-      initial[name] = audioNode[name].value;
-      initial[`${name}-slider`] = reverseTransformValue(sliderAction, audioNode[name].value);
-    }
-    return initial;
-  }, {});
-
+  // there's probably a better day to initiate state
+  const initialState = AudioNodeGraph.getNodesInitialState(id, params);
   const [state, setState] = useState(initialState);
 
-  const slider = ({ name, min, max, sliderAction }) => {
-    const sliderMax = reverseTransformValue(sliderAction, max);
-
-    const onSlide = ({target: {value}}) => {
-      const transformedValue = transformValue(sliderAction, parseFloat(value));
-      const audioNode = AudioNodeGraph.get(id);
-      audioNode[name].setValueAtTime(transformedValue, audioNode.context.currentTime);
-      setState({...state, [name]: transformedValue, [`${name}-slider`]: value})
-    }
-
-    const onChange = ({target: {value}}) => {
-      const audioNode = AudioNodeGraph.get(id);
-      audioNode[name].setValueAtTime(value, audioNode.context.currentTime);
-      const parsedValue = parseFloat(value) || 0;
-      setState({...state, [name]: value, [`${name}-slider`]: reverseTransformValue(sliderAction, parsedValue)});
-    }
-
-    return (
-      <div key={name} className={`controls param-${name}`}>
-        <label>{name}</label>
-        <div className="inputs">
-          <input
-            className="nodrag"
-            type="range"
-            min={min}
-            max={sliderMax}
-            step="0.01"
-            value={state[`${name}-slider`]}
-            onChange={onSlide}
-            />
-          <input
-            value={state[name]}
-            onChange={onChange}
-          />
-        </div>
-      </div>
-    )
-  }
-
-  const constant = ({name, options}) => {
-
-    const onChange = ({ target: { value }}) => {
-      const audioNode = AudioNodeGraph.get(id);
-      audioNode[name] = value
-    }
-
-    return (
-      <div key={name} className={`controls constant-${name}`}>
-        <label>{name}</label>
-        <div className="inputs">
-          <select onChange={onChange} name={name}>
-            {options.map(option => <option key={option} value={option}>{option}</option>)}
-          </select>
-        </div>
-      </div>
-    )
-  }
 
   return(
     <div key={id} style={nodeStyle}>
       {inputs ? <Handle type="target" position="left" /> : ""}
       {params.map(({name}, idx) => <Handle type="target" key={name} id={name} position="top" style={{ left: `${(idx + 0.5)/params.length * 100}%`}}/>)}
       <div className="label">{label}</div>
-      {params.map(slider)}
-      {constants.map(constant)}
+      {params.map(props => 
+        <ParamSlider 
+          {...props} 
+          key={props.name}
+          id={id}
+          state={state}
+          setState={setState}
+        />)}
+      {constants.map(props => 
+        <ConstantSelect 
+          {...props}
+          key={props.name}
+          id={id}
+        />)}
       {outputs ? <Handle type="source" position="right" /> : ""}
     </div>
   )
