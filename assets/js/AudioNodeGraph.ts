@@ -41,10 +41,9 @@ export class AudioNodeGraph {
   }
 
   // redefine audioNodeFlowInterface and return here
-  add(type: string, id: string) : any {
-    const { audioNode, ...rest} = AudioNodeLibrary[type](this.audioCtx);
+  add(type: string, id: string) : void {
+    const audioNode = AudioNodeLibrary[type].func(this.audioCtx);
     this.nodes.set(id, audioNode);
-    return rest;
   }
 
   set(id: string, node: AudioNode) {

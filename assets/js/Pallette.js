@@ -17,7 +17,7 @@ const Pallette = () => {
         <ul>
           {Object.keys(AudioNodeLibrary).map(key =>
             <div key={key} className="dndnode" onDragStart={(event) => onDragStart(event, key)} draggable>
-              {key}
+              {AudioNodeLibrary[key].flowData.label}
             </div>
           )}
         </ul>

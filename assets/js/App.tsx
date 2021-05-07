@@ -6,6 +6,7 @@ import AudioFlowNode from './components/flow_nodes/AudioFlowNode';
 import SenderFlowNode from './components/flow_nodes/SenderFlowNode';
 import ReceiverFlowNode from './components/flow_nodes/ReceiverFlowNode';
 import AudioNodeGraph from './AudioNodeGraph';
+import AudioNodeLibrary from './AudioNodeLibrary';
 
 const nodeTypes = {
   default: AudioFlowNode,
@@ -70,13 +71,13 @@ const App = () => {
     const position = patchInstance!.project({ x: event.clientX, y: event.clientY });
 
     const id = getId();
-    const data = AudioNodeGraph.add(type, id);
+    AudioNodeGraph.add(type, id);
 
     const newNode = {
       id,
       type,
       position,
-      data
+      data: AudioNodeLibrary[type].flowData
     };
 
     setElements((es) => es.concat(newNode));

@@ -1,11 +1,13 @@
-import { AudioNodeFlowInterface } from "./AudioNodeFlowInterface";
+import { AudioNodeFlowInterface, AudioNodeLibraryEntry } from "./AudioNodeFlowInterface";
 
-const AudioNodeLibrary:{ [index: string] : (ctx: AudioContext) => AudioNodeFlowInterface} = {
-  oscillator: (ctx: AudioContext): AudioNodeFlowInterface => {
-    const audioNode = ctx.createOscillator();
-    audioNode.start();
-    return new AudioNodeFlowInterface({ 
-      audioNode, 
+const AudioNodeLibrary:{ [index: string] : AudioNodeLibraryEntry } = {
+  oscillator: {
+    func: (ctx) => {
+      const audioNode = ctx.createOscillator();
+      audioNode.start();
+      return audioNode;
+    },
+    flowData: new AudioNodeFlowInterface({
       label: "Oscillator", 
       params: [
         {
@@ -20,36 +22,42 @@ const AudioNodeLibrary:{ [index: string] : (ctx: AudioContext) => AudioNodeFlowI
           name: "type", 
           options: ["sine", "square", "sawtooth", "triangle"]
         }
-      ]
-    });
-  },
-  output: (ctx: AudioContext): AudioNodeFlowInterface => {
-    return new AudioNodeFlowInterface({
-      audioNode: ctx.destination,
-      label: "Output"
-    });
-  },
-  gain: (ctx: AudioContext): AudioNodeFlowInterface => {
-    const audioNode = ctx.createGain();
-    return new AudioNodeFlowInterface({
-      audioNode,
-      label: "Gain",
-      params: [{ name: "gain", min: 0, max: 22000, sliderAction: "exp"}]
-    });
-  },
-  constant: (ctx: AudioContext): AudioNodeFlowInterface => {
-    const audioNode = ctx.createConstantSource();
-    audioNode.start();
-    return new AudioNodeFlowInterface({
-      audioNode,
-      label: "Constant",
-      params: [{ name: "offset", min: 0, max: 22000, sliderAction: "exp"}]
+      ],
+      outputs: 1
     })
   },
-  filter: (ctx: AudioContext): AudioNodeFlowInterface => {
-    const audioNode = ctx.createBiquadFilter();
-    return new AudioNodeFlowInterface({
-      audioNode,
+  output: {
+    func: (ctx) => ctx.destination,
+    flowData: new AudioNodeFlowInterface({
+      label: "Output",
+      inputs: 1
+    })
+  },
+  gain: {
+    func: (ctx) => ctx.createGain(),
+    
+    flowData: new AudioNodeFlowInterface({
+      label: "Gain",
+      params: [{ name: "gain", min: 0, max: 22000, sliderAction: "exp"}],
+      inputs: 1,
+      outputs: 1
+    })
+  },
+  constant: {
+    func: (ctx) => {
+      const audioNode = ctx.createConstantSource();
+      audioNode.start();
+      return audioNode;
+    },
+    flowData: new AudioNodeFlowInterface({
+      label: "Constant",
+      params: [{ name: "offset", min: 0, max: 22000, sliderAction: "exp"}],
+      outputs: 1
+    })
+  },
+  filter: {
+    func: (ctx) => ctx.createBiquadFilter(),
+    flowData: new AudioNodeFlowInterface({
       label: "Filter",
       params: [
         {
@@ -71,13 +79,14 @@ const AudioNodeLibrary:{ [index: string] : (ctx: AudioContext) => AudioNodeFlowI
           name: "type",
           options: ["lowpass", "highpass", "bandpass", "lowshelf", "highshelf", "peaking", "notch", "allpass"]
         }
-      ]
-    });
+      ],
+      inputs: 1,
+      outputs: 1
+    })
   },
-  delay: (ctx: AudioContext): AudioNodeFlowInterface => {
-    const audioNode = ctx.createDelay();
-    return new AudioNodeFlowInterface({
-      audioNode,
+  delay: {
+    func: (ctx) => ctx.createDelay(),
+    flowData: new AudioNodeFlowInterface({
       label: "Delay",
       params: [
         { 
@@ -86,13 +95,14 @@ const AudioNodeLibrary:{ [index: string] : (ctx: AudioContext) => AudioNodeFlowI
           max: 1,
           sliderAction: "exp"
         }
-      ]
+      ],
+      inputs: 1,
+      outputs: 1
     })
   },
-  pan: (ctx: AudioContext): AudioNodeFlowInterface => {
-    const audioNode = ctx.createStereoPanner();
-    return new AudioNodeFlowInterface({
-      audioNode,
+  pan: {
+    func: (ctx) => ctx.createStereoPanner(),
+    flowData: new AudioNodeFlowInterface({
       label: "Stereo Panner",
       params: [
         {
@@ -100,45 +110,46 @@ const AudioNodeLibrary:{ [index: string] : (ctx: AudioContext) => AudioNodeFlowI
           min: -1,
           max: 1
         }
-      ]
+      ],
+      inputs: 1,
+      outputs: 1
     })
   },
-  sender: (ctx: AudioContext): AudioNodeFlowInterface => {
-    const audioNode = ctx.createMediaStreamDestination();
-    return new AudioNodeFlowInterface({
-      audioNode,
+  sender: {
+    func: (ctx) => ctx.createMediaStreamDestination(),
+    flowData: new AudioNodeFlowInterface({
       label: "Sender",
+      inputs: 1,
     })
   },
-  receiver: (ctx: AudioContext): AudioNodeFlowInterface => {
+  receiver: {
     // this is a placeholder audioNode that will output silence,
     // the audioNode will be replaced when the connection happens
-    const audioNode = ctx.createBufferSource();
-    return new AudioNodeFlowInterface({
+    func: (ctx) => ctx.createBufferSource(),
+    flowData: new AudioNodeFlowInterface({
       label: "Receiver",
-      audioNode
+      outputs: 1,
     })
   },
-  noise: (ctx: AudioContext): AudioNodeFlowInterface => {
-    const audioNode = new AudioWorkletNode(ctx, 'white_noise_processor');
-    return new AudioNodeFlowInterface({
+  noise: {
+    func: (ctx) => new AudioWorkletNode(ctx, 'white_noise_processor'),
+    flowData: new AudioNodeFlowInterface({
       label: "Noise",
-      audioNode,
-      inputs: 0
+      outputs: 1
     })
   },
-  digitalNoise: (ctx: AudioContext): AudioNodeFlowInterface => {
-    const audioNode = new AudioWorkletNode(ctx, 'digital_noise_processor');
-    return new AudioNodeFlowInterface({
+  digitalNoise: {
+    func: (ctx) => new AudioWorkletNode(ctx, 'digital_noise_processor'),
+    flowData: new AudioNodeFlowInterface({
       label: "Digital Noise",
-      audioNode,
       inputs: 0,
       params: [{
         name: "frequency",
         min: 0,
         max: 22000,
         sliderAction: "exp"
-      }]
+      }],
+      outputs: 1
     })
   }
 }
