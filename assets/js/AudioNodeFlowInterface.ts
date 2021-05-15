@@ -1,9 +1,23 @@
+import { isConstructorDeclaration } from "typescript";
+import ControlNode from "./ControlNode";
+
 export type Param = {
   name: string,
   min: number,
   max: number,
   sliderAction?: string
 }
+
+export class ControlParam {
+  constructor(value: number) {
+    this.value = value;
+  }
+  setValueAtTime(value: number, _currentTime: number) {
+    this.value = value;
+  }
+  value: number;
+}
+
 export type Constant = {
   name: string,
   options: string[]
@@ -14,8 +28,8 @@ export type AudioNodeFlowInterfaceOptions = {
   label: string
   params?: Param[]
   constants?: Constant[],
-  inputs?: number,
-  outputs?: number
+  inputs?: "audio" | "control" | "trigger",
+  outputs?: "audio" | "control" | "trigger"
 }
 
 export class AudioNodeFlowInterface {
@@ -24,17 +38,18 @@ export class AudioNodeFlowInterface {
     this.label = label;
     this.params = params || [];
     this.constants = constants || [];
-    this.outputs = outputs || 0;
-    this.inputs = inputs || 0;
+    this.outputs = outputs || null;
+    this.inputs = inputs || null;
   }
   label: string;
   params: Param[];
   constants: Constant[];
-  outputs: number;
-  inputs: number;
+  outputs: "audio" | "control" | "trigger" | null;
+  inputs: "audio" | "control" | "trigger" | null;
 }
 
 export type AudioNodeLibraryEntry = {
-  func: (ctx: AudioContext) => AudioNode;
+  func: (ctx: AudioContext) => AudioNode | ControlNode;
   flowData: AudioNodeFlowInterface;
+  flowNodeType: string;
 }

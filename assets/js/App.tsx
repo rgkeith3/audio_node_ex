@@ -7,11 +7,13 @@ import SenderFlowNode from './components/flow_nodes/SenderFlowNode';
 import ReceiverFlowNode from './components/flow_nodes/ReceiverFlowNode';
 import AudioNodeGraph from './AudioNodeGraph';
 import AudioNodeLibrary from './AudioNodeLibrary';
+import ControlFlowNode from './components/flow_nodes/ControlFlowNode';
 
 const nodeTypes = {
-  default: AudioFlowNode,
+  generic: AudioFlowNode,
   sender: SenderFlowNode,
-  receiver: ReceiverFlowNode
+  receiver: ReceiverFlowNode,
+  control: ControlFlowNode
 };
 
 let id = 0;
@@ -67,17 +69,17 @@ const App = () => {
   const onDrop = (event: React.DragEvent) => {
     event.preventDefault();
 
-    const type = event.dataTransfer!.getData('application/reactflow');
+    const key = event.dataTransfer!.getData('application/reactflow');
     const position = patchInstance!.project({ x: event.clientX, y: event.clientY });
 
     const id = getId();
-    AudioNodeGraph.add(type, id);
+    AudioNodeGraph.add(key, id);
 
     const newNode = {
       id,
-      type,
+      type: AudioNodeLibrary[key].flowNodeType,
       position,
-      data: AudioNodeLibrary[type].flowData
+      data: AudioNodeLibrary[key].flowData
     };
 
     setElements((es) => es.concat(newNode));

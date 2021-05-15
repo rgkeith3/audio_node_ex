@@ -1,4 +1,5 @@
-import { AudioNodeFlowInterface, AudioNodeLibraryEntry } from "./AudioNodeFlowInterface";
+import { AudioNodeFlowInterface, AudioNodeLibraryEntry, ControlParam } from "./AudioNodeFlowInterface";
+import ControlNode from "./ControlNode";
 
 const AudioNodeLibrary:{ [index: string] : AudioNodeLibraryEntry } = {
   oscillator: {
@@ -23,15 +24,17 @@ const AudioNodeLibrary:{ [index: string] : AudioNodeLibraryEntry } = {
           options: ["sine", "square", "sawtooth", "triangle"]
         }
       ],
-      outputs: 1
-    })
+      outputs: "audio"
+    }),
+    flowNodeType: "generic"
   },
   output: {
     func: (ctx) => ctx.destination,
     flowData: new AudioNodeFlowInterface({
       label: "Output",
-      inputs: 1
-    })
+      inputs: "audio"
+    }),
+    flowNodeType: "generic"
   },
   gain: {
     func: (ctx) => ctx.createGain(),
@@ -39,9 +42,10 @@ const AudioNodeLibrary:{ [index: string] : AudioNodeLibraryEntry } = {
     flowData: new AudioNodeFlowInterface({
       label: "Gain",
       params: [{ name: "gain", min: 0, max: 22000, sliderAction: "exp"}],
-      inputs: 1,
-      outputs: 1
-    })
+      inputs: "audio",
+      outputs: "audio"
+    }),
+    flowNodeType: "generic"
   },
   constant: {
     func: (ctx) => {
@@ -52,8 +56,9 @@ const AudioNodeLibrary:{ [index: string] : AudioNodeLibraryEntry } = {
     flowData: new AudioNodeFlowInterface({
       label: "Constant",
       params: [{ name: "offset", min: 0, max: 22000, sliderAction: "exp"}],
-      outputs: 1
-    })
+      outputs: "audio"
+    }),
+    flowNodeType: "generic"
   },
   filter: {
     func: (ctx) => ctx.createBiquadFilter(),
@@ -80,9 +85,10 @@ const AudioNodeLibrary:{ [index: string] : AudioNodeLibraryEntry } = {
           options: ["lowpass", "highpass", "bandpass", "lowshelf", "highshelf", "peaking", "notch", "allpass"]
         }
       ],
-      inputs: 1,
-      outputs: 1
-    })
+      inputs: "audio",
+      outputs: "audio"
+    }),
+    flowNodeType: "generic"
   },
   delay: {
     func: (ctx) => ctx.createDelay(),
@@ -96,9 +102,10 @@ const AudioNodeLibrary:{ [index: string] : AudioNodeLibraryEntry } = {
           sliderAction: "exp"
         }
       ],
-      inputs: 1,
-      outputs: 1
-    })
+      inputs: "audio",
+      outputs: "audio"
+    }),
+    flowNodeType: "generic"
   },
   pan: {
     func: (ctx) => ctx.createStereoPanner(),
@@ -111,16 +118,18 @@ const AudioNodeLibrary:{ [index: string] : AudioNodeLibraryEntry } = {
           max: 1
         }
       ],
-      inputs: 1,
-      outputs: 1
-    })
+      inputs: "audio",
+      outputs: "audio"
+    }),
+    flowNodeType: "generic"
   },
   sender: {
     func: (ctx) => ctx.createMediaStreamDestination(),
     flowData: new AudioNodeFlowInterface({
       label: "Sender",
-      inputs: 1,
-    })
+      inputs: "audio",
+    }),
+    flowNodeType: "sender"
   },
   receiver: {
     // this is a placeholder audioNode that will output silence,
@@ -128,30 +137,99 @@ const AudioNodeLibrary:{ [index: string] : AudioNodeLibraryEntry } = {
     func: (ctx) => ctx.createBufferSource(),
     flowData: new AudioNodeFlowInterface({
       label: "Receiver",
-      outputs: 1,
-    })
+      outputs: "audio",
+    }),
+    flowNodeType: "reciever"
   },
   noise: {
     func: (ctx) => new AudioWorkletNode(ctx, 'white_noise_processor'),
     flowData: new AudioNodeFlowInterface({
       label: "Noise",
-      outputs: 1
-    })
+      outputs: "audio"
+    }),
+    flowNodeType: "generic"
   },
   digitalNoise: {
     func: (ctx) => new AudioWorkletNode(ctx, 'digital_noise_processor'),
     flowData: new AudioNodeFlowInterface({
       label: "Digital Noise",
-      inputs: 0,
       params: [{
         name: "frequency",
         min: 0,
         max: 22000,
         sliderAction: "exp"
       }],
-      outputs: 1
-    })
+      outputs: "audio"
+    }),
+    flowNodeType: "generic"
+  },
+  ad: {
+    func: () => new ControlNode({
+      attack: new ControlParam(0.1),
+      decay: new ControlParam(0.2),
+      stages: ["attack", "decay"]
+    }),
+    flowData: new AudioNodeFlowInterface({
+      label: "AD envelope",
+      inputs: "trigger",
+      outputs: "control",
+      params: [
+        {
+          name: "attack",
+          min: 0,
+          max: 60,
+          sliderAction: "exp"
+        },
+        {
+          name: "decay",
+          min: 0,
+          max: 60,
+          sliderAction: "exp"
+        }
+      ]
+    }),
+    flowNodeType: "control"
   }
+  // adsr: {
+  //   func: () => new ControlNode({
+  //     attack: new ControlParam(0.1),
+  //     decay: new ControlParam(0.2),
+  //     sustain: new ControlParam(0.8),
+  //     release: new ControlParam(0.5)
+  //   }),
+  //   flowData: new AudioNodeFlowInterface({
+  //     label: "ADSR envelope",
+  //     inputs: "trigger",
+  //     outputs: "control",
+  //     params: [
+  //       {
+  //         name: "attack",
+  //         min: 0,
+  //         max: 60,
+  //         sliderAction: "exp"
+  //       },
+  //       {
+  //         name: "decay",
+  //         min: 0,
+  //         max: 60,
+  //         sliderAction: "exp"
+  //       },
+  //       {
+  //         name: "sustain",
+  //         min: 0,
+  //         max: 1,
+  //         sliderAction: "lin"
+  //       },
+  //       {
+  //         name: "release",
+  //         min: 0,
+  //         max: 60,
+  //         sliderAction: "release"
+  //       }
+  //     ]
+  //   }),
+    // flowNodeType: "control"
+  // }
 }
 
 export default AudioNodeLibrary

@@ -1,6 +1,7 @@
 import { Connection, Edge } from "react-flow-renderer";
-import { Param } from "./AudioNodeFlowInterface";
+import { ControlParam, Param } from "./AudioNodeFlowInterface";
 import AudioNodeLibrary from "./AudioNodeLibrary";
+import ControlNode from "./ControlNode";
 import { reverseTransformValue } from "./utils/tranformValues";
 
 export class AudioNodeGraph {
@@ -23,6 +24,7 @@ export class AudioNodeGraph {
     this.set = this.set.bind(this);
     this.get = this.get.bind(this);
     this.getTarget = this.getTarget.bind(this);
+    this.isValidConnection = this.isValidConnection.bind(this);
     this.remove = this.remove.bind(this);
     this.resume = this.resume.bind(this);
     this.suspend = this.suspend.bind(this);
@@ -50,11 +52,11 @@ export class AudioNodeGraph {
     this.nodes.set(id, node);
   }
 
-  get(id: string) : AudioNode | undefined {
+  get(id: string) : AudioNode | ControlNode | undefined {
     return this.nodes.get(id);
   }
 
-  getTarget(id: string, param: string | null | undefined) : AudioNode | AudioParam {
+  getTarget(id: string, param: string | null | undefined) : AudioNode | ControlNode | AudioParam | ControlParam {
     const targetNode = this.get(id)!;
     if (!param) return targetNode;
 
@@ -66,13 +68,22 @@ export class AudioNodeGraph {
     return targetNode[param];
   }
 
+  isValidConnection(conn: Connection) {
+    const source = this.get(conn.source!);
+    const target = this.getTarget(conn.target!, conn.targetHandle);
+
+    if ((source instanceof AudioNode || source instanceof ControlNode) && (target instanceof AudioNode || target instanceof AudioParam)) {
+      return true;
+    }
+    return false;
+  }
+
   getNodesInitialState(id: string, params: Param[]) : object {
     const audioNode = this.get(id);
     if (audioNode) {
       return params.reduce((initial, {name, sliderAction}) => {
-        
         const nodeParam = this.getTarget(id, name);
-        if (nodeParam instanceof AudioParam) {
+        if (nodeParam instanceof AudioParam || nodeParam instanceof ControlParam) {
           //@ts-ignore
           initial[name] = nodeParam.value;
           //@ts-ignore
